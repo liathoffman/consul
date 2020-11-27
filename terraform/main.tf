@@ -11,7 +11,9 @@ provider "aws" {
 # DATA
 ##################################################################################
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+}
 
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -77,7 +79,7 @@ resource "aws_instance" "consul" {
   count                       = 3
   ami                         = "ami-00f5af38cc835166d"
   instance_type               = "t2.micro"
-  availability_zone           = aws_availability_zones.available[count.index]
+  availability_zone           = data.aws_availability_zones.available.names[0]
   vpc_security_group_ids      = [aws_security_group.instance-sg.id]
   key_name                    = var.key_name
   associate_public_ip_address = true
