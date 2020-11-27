@@ -30,6 +30,19 @@ data "aws_ami" "ubuntu" {
 # RESOURCES
 ##################################################################################
 
+# VPC
+
+module "vpc" {
+  key_name         = var.key_name
+  private_key_path = var.private_key_path
+  source           = "./modules/vpc"
+  network_address_space = var.network_address_space
+  public_subnet_address_space = var.public_subnet_address_space
+  private_subnet_address_space = var.private_subnet_address_space
+
+}
+
+
 # SECURITY GROUPS #
 
 # Instance security group 
@@ -63,6 +76,23 @@ resource "aws_security_group" "instance-sg" {
 }
 
 # INSTANCES #
+resource "aws_instance" "consul" {
+  count                       = length(var.public_subnets)
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = "t2.micro"
+  subnet_id                   = var.public_subnets[count.index].id
+  vpc_security_group_ids      = [aws_security_group.instance-sg.id]
+  key_name                    = var.key_name
+  associate_public_ip_address = true
+  user_data                   = "${file("install_nginx.sh")}"
+  iam_instance_profile        = aws_iam_instance_profile.s3_profile.name
+
+  tags = {
+    Name = "nginx-AZ-${count.index + 1}"
+  }
+
+}
+
 resource "aws_instance" "nginx" {
   count                       = length(var.public_subnets)
   ami                         = data.aws_ami.ubuntu.id
