@@ -72,15 +72,16 @@ resource "aws_security_group" "instance-sg" {
 }
 
 # INSTANCES #
+
 resource "aws_instance" "consul" {
   count                       = 3
-  ami                         = data.aws_ami.ubuntu.id
+  ami                         = "ami-00f5af38cc835166d"
   instance_type               = "t2.micro"
   availability_zone           = aws_availability_zones.available[count.index]
   vpc_security_group_ids      = [aws_security_group.instance-sg.id]
   key_name                    = var.key_name
   associate_public_ip_address = true
-  user_data                   = "${file("install_nginx.sh")}"
+  user_data                   = "${file("run_consul.sh")}"
 
   tags = {
     Name = "consul-AZ-${count.index + 1}"
