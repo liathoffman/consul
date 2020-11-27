@@ -129,7 +129,8 @@ resource "aws_iam_role_policy" "ec2-describe" {
       {
          "Effect":"Allow",
          "Action":[
-            "ec2:DescribeInstances"
+            "ec2:DescribeInstances",
+            "ec2:DescribeTags"
          ],
          "Resource":"*"
       }
