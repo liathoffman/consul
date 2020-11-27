@@ -32,16 +32,10 @@ data "aws_ami" "ubuntu" {
 
 # VPC
 
-module "vpc" {
-  key_name         = var.key_name
-  private_key_path = var.private_key_path
-  source           = "./modules/vpc"
-  network_address_space = var.network_address_space
-  public_subnet_address_space = var.public_subnet_address_space
-  private_subnet_address_space = var.private_subnet_address_space
+#This uses the default VPC.  It WILL NOT delete it on destroy.
+resource "aws_default_vpc" "default" {
 
 }
-
 
 # SECURITY GROUPS #
 
