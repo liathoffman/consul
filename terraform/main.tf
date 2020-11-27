@@ -83,10 +83,57 @@ resource "aws_instance" "consul" {
   vpc_security_group_ids      = [aws_security_group.instance-sg.id]
   key_name                    = var.key_name
   associate_public_ip_address = true
+  iam_instance_profile        = aws_iam_instance_profile.describe-instances.name
   user_data                   = "${file("run_consul.sh")}"
 
   tags = {
-    Name = "consul-AZ-${count.index + 1}"
+    Name = "consul"
   }
 
+}
+
+# IAM ROLES #
+
+resource "aws_iam_instance_profile" "describe-instances" {
+  name = "ec2_DescribeInstances"
+  role = aws_iam_role.ec2-describe.name
+}
+
+resource "aws_iam_role" "ec2-describe" {
+  name = "ec2-decribe"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "ec2-describe" {
+  name = "ec2-describe"
+  role = aws_iam_role.ec2-describe.id
+
+  policy = <<EOF
+{
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Effect":"Allow",
+         "Action":[
+            "ec2:DescribeInstances"
+         ],
+         "Resource":"*"
+      }
+   ]
+}
+EOF
 }
