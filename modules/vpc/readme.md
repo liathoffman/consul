@@ -1,1 +1,0 @@
-This terraform module is used to create an AWS VPC.
