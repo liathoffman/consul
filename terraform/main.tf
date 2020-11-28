@@ -15,21 +15,6 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
 ##################################################################################
 # RESOURCES
 ##################################################################################
@@ -82,6 +67,23 @@ resource "aws_instance" "consul" {
 
 }
 
+resource "aws_instance" "nginx" {
+  ami                         = "ami-00f5af38cc835166d"
+  instance_type               = "t2.micro"
+  availability_zone           = data.aws_availability_zones.available.names[0]
+  vpc_security_group_ids      = [aws_security_group.instance-sg.id]
+  key_name                    = var.key_name
+  associate_public_ip_address = true
+  user_data                   = "${file("install_nginx.sh")}"
+  iam_instance_profile        = aws_iam_instance_profile.describe-instances.name
+
+  tags = {
+    Name    = "consul"
+    service = "nginx"
+  }
+
+}
+
 # IAM ROLES #
 
 resource "aws_iam_instance_profile" "describe-instances" {
@@ -90,7 +92,7 @@ resource "aws_iam_instance_profile" "describe-instances" {
 }
 
 resource "aws_iam_role" "ec2-describe" {
-  name = "ec2-decribe"
+  name               = "ec2-decribe"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
